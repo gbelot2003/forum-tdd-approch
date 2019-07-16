@@ -14,9 +14,21 @@ class ParticipateInForum extends TestCase
     use RefreshDatabase;
 
     /** @test */
+    function unauthenticated_users_may_not_add_replies()
+    {
+        $this->expectException('Illuminate\Auth\AuthenticationException');
+
+        $user = factory(User::class)->create();
+
+        $thread = factory(Thread::class)->create();
+        $reply = factory(Reply::class)->make();
+        $this->post($thread->path() .'/replies', $reply->toArray());
+    }
+
+    /** @test */
     function an_authenticated_user_my_participate_in_forum_threads()
     {
-        // Givin we have an authenticated user
+        // Given we have an authenticated user
         $this->be($user = factory(User::class)->create());
 
         // And an existing thread
@@ -24,7 +36,7 @@ class ParticipateInForum extends TestCase
 
         // When the user add a reply to the thread
         $reply = factory(Reply::class)->make();
-        $this->post('/threads/'. $thread->id .'/replies', $reply->toArray());
+        $this->post($thread->path() .'/replies', $reply->toArray());
 
         //then their reply should be included on the page
         $this->get($thread->path())
